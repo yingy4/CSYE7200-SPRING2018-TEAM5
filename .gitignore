@@ -31,3 +31,5 @@ nbdist/
 .nb-gradle/
 
 *.xsl
+target
+target/
