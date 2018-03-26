@@ -30,7 +30,7 @@ dist/
 nbdist/
 .nb-gradle/
 
-*.xsl
+
 target
 target/
 project
