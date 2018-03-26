@@ -30,4 +30,4 @@ dist/
 nbdist/
 .nb-gradle/
 
-.xls
+*.xsl
