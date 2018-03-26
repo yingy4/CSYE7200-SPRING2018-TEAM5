@@ -33,3 +33,5 @@ nbdist/
 *.xsl
 target
 target/
+project
+project/
