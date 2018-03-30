@@ -6,9 +6,8 @@ import scala.collection.mutable
 
 case class ScalaSnippet(ACCESS_KEY_ID : String, SECRET_KEY : String, ENDPOINT : String){
   def generateUrl(): String = {
-    val helper = new SignedRequestsHelper(ENDPOINT, ACCESS_KEY_ID, SECRET_KEY)
-    import java.util.HashMap
-    val map = new util.HashMap[String, String]
+    val helper = ScalaSignedRequestsHelper(ENDPOINT,ACCESS_KEY_ID, SECRET_KEY)
+    val map = new mutable.HashMap[String, String]
     map.put("Service", "AWSECommerceService")
     map.put("Operation", "ItemSearch")
     map.put("AWSAccessKeyId", ACCESS_KEY_ID)
