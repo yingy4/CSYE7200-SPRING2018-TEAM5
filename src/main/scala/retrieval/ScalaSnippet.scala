@@ -19,7 +19,7 @@ case class ScalaSnippet(ACCESS_KEY_ID : String, SECRET_KEY : String, ENDPOINT : 
     requestUrl
   }
 }
-
+//TODO: implement an object that can allow users to adjust search parameters(combine this function with Item case clss constructor!)
 object ScalaSnippet {
   //def apply(ACCESS_KEY_ID: String, SECRET_KEY: String, ENDPOINT: String): ScalaSnippet = new ScalaSnippet(ACCESS_KEY_ID, SECRET_KEY, ENDPOINT)
 }
