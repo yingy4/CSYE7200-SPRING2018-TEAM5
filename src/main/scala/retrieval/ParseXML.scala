@@ -1,44 +1,58 @@
 package retrieval
 
+
+
+
+
+
+
 import scala.annotation.tailrec
 import scala.concurrent.{Await, Future}
 import scala.util.{Failure, Success, Try}
+import scala.concurrent.ExecutionContext.Implicits.global
+
 
 object ParseXML extends App {
+  //store every single result into buf
+  val buf = scala.collection.mutable.ArrayBuffer.empty[Any]
 
   val url = "http://webservices.amazon.com/onca/xml?AWSAccessKeyId=AKIAJVADVVC5WAOOAQHA&AssociateTag=scalaproject-20&ItemPage=1&Keywords=Trouser&Operation=ItemSearch&ResponseGroup=ItemAttributes&SearchIndex=All&Service=AWSECommerceService&Timestamp=2018-03-29T21%3A15%3A53Z&Signature=nuPYqjEmgc1nsGjF1xWVbhVSQVcejsY6tKgIu1C%2FV5U%3D"
-
-  val url2 = "http://webservices.amazon.com/onca/xml?AWSAccessKeyId=AKIAJVADVVC5WAOOAQHA&AssociateTag=scalaproject-20&ItemPage=2&Keywords=Trouser&Operation=ItemSearch&ResponseGroup=ItemAttributes&SearchIndex=All&Service=AWSECommerceService&Timestamp=2018-03-29T21%3A15%3A34Z&Signature=jZlnReiwD6WzCsNzyRwrxZ5iXyuRx3UxDmUiqxSYgPQ%3D"
-
-  val url3 = "http://webservices.amazon.com/onca/xml?AWSAccessKeyId=AKIAJVADVVC5WAOOAQHA&AssociateTag=scalaproject-20&ItemPage=3&Keywords=Trouser&Operation=ItemSearch&ResponseGroup=ItemAttributes&SearchIndex=All&Service=AWSECommerceService&Timestamp=2018-03-29T21%3A15%3A14Z&Signature=ruIEX%2Ba%2F4tnyWGNdeWp9fRdfGxbNwCHPI%2BhNiVBo1p8%3D"
-
-  val url4 = "http://webservices.amazon.com/onca/xml?AWSAccessKeyId=AKIAJVADVVC5WAOOAQHA&AssociateTag=scalaproject-20&ItemPage=4&Keywords=Trouser&Operation=ItemSearch&ResponseGroup=ItemAttributes&SearchIndex=All&Service=AWSECommerceService&Timestamp=2018-03-29T13%3A51%3A16Z&Signature=lLEmRckwLdQmkGjvm3ZblxNkx%2FYbymiOFoVntEypPXU%3D"
-
-  val url5 = "http://webservices.amazon.com/onca/xml?AWSAccessKeyId=AKIAJVADVVC5WAOOAQHA&AssociateTag=scalaproject-20&ItemPage=5&Keywords=Trouser&Operation=ItemSearch&ResponseGroup=ItemAttributes&SearchIndex=All&Service=AWSECommerceService&Timestamp=2018-03-29T13%3A51%3A36Z&Signature=Bth%2BjLe0o3VPWQC39OckJnzxsA0Mew0SkQH8wsrMgOc%3D"
-
-  val url6 = "http://webservices.amazon.com/onca/xml?AWSAccessKeyId=AKIAJVADVVC5WAOOAQHA&AssociateTag=scalaproject-20&ItemPage=6&Keywords=Trouser&Operation=ItemSearch&ResponseGroup=ItemAttributes&SearchIndex=All&Service=AWSECommerceService&Timestamp=2018-03-29T13%3A51%3A54Z&Signature=c4mSZElCAMtjXeSpPTyOmbiXfg%2FNfDiDPARNMGu24%2Bo%3D"
-
-
-  val items = urlToItem(url)
-  val colors = itemToAttribute(items, "Color")
-  val brands = itemToAttribute(items, "Brand")
-  val prices = itemToAttribute(items, "FormattedPrice")
-  val urls = List(url,url3,url2)
-  aaa(urls)
+  //use this to generate url
+  val snippet = ScalaSnippet(AmazonClient.ACCESS_KEY_ID, AmazonClient.SECRET_KEY, AmazonClient.ENDPOINT)
+  val urlX = snippet.generateUrl()
+  //code by Yichuan
+  def kkk(): Unit = {
+    val l = new Array[String](10)
+    for (i <- 0 to 9) {
+      val url = snippet.generateUrl()
+      l(i) = url
+    }
+    aaa(l)
+  }
+  kkk()
+  Thread.sleep(1000)
+  kkk()
+  Thread.sleep(1000)
+  println(buf)
+//  val items = urlToItem(urlX)
+//  val colors = itemToAttribute(items, "Color")
+//  val brands = itemToAttribute(items, "Brand")
+//  val prices = itemToAttribute(items, "FormattedPrice")
+//  val urls = List(urlX)
 
   case class Item(Color: String, Brand: String, Price: String)
-
   def aaa(urls: Seq[String]): Unit = {
-    import scala.concurrent.ExecutionContext.Implicits.global
-    import scala.concurrent.duration._
     val listOfFuture = for(url <- urls) yield Future(urlToItem(url))
     val futureOfList = Future.sequence(listOfFuture)
-    Await.result(futureOfList,100 millis)
     futureOfList onComplete {
       case Success(x) => val y = for(listOfItems <- x) yield {
-        itemToAttribute(listOfItems,"Color")
-      }
-        println(y)
+        itemToAttribute(listOfItems,"Color")}
+        for(s <- y.flatten) yield {
+          buf += s
+        }
+        println(y.flatten)
+
+        //TODO: intrigue another url-generating process
     }
   }
 
