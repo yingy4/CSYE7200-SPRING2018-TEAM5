@@ -3,8 +3,7 @@ package retrieval
 import scala.xml.XML
 
 object ParseTest extends App {
-  val snippet = ScalaSnippet(AmazonClient.ACCESS_KEY_ID, AmazonClient.SECRET_KEY, AmazonClient.ENDPOINT)
-  val urlX = snippet.generateUrl()
+  val urlX = AmazonClient.generateUrl(1)
 
   val xml = XML.load(urlX)
   val itemOriginal = (xml \\ "Item")

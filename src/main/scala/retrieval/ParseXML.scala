@@ -18,20 +18,9 @@ object ParseXML extends App {
 
   val url = "http://webservices.amazon.com/onca/xml?AWSAccessKeyId=AKIAJVADVVC5WAOOAQHA&AssociateTag=scalaproject-20&ItemPage=1&Keywords=Trouser&Operation=ItemSearch&ResponseGroup=ItemAttributes&SearchIndex=All&Service=AWSECommerceService&Timestamp=2018-03-29T21%3A15%3A53Z&Signature=nuPYqjEmgc1nsGjF1xWVbhVSQVcejsY6tKgIu1C%2FV5U%3D"
   //use this to generate url
-  val snippet = ScalaSnippet(AmazonClient.ACCESS_KEY_ID, AmazonClient.SECRET_KEY, AmazonClient.ENDPOINT)
-  val urlX = snippet.generateUrl()
+  val urlX = AmazonClient.generateUrl(1,3)
   //code by Yichuan
-  def kkk(): Unit = {
-    val l = new Array[String](10)
-    for (i <- 0 to 9) {
-      val url = snippet.generateUrl()
-      l(i) = url
-    }
-    aaa(l)
-  }
-  kkk()
-  Thread.sleep(1000)
-  kkk()
+  aaa(urlX)
   Thread.sleep(1000)
   println(buf)
 //  val items = urlToItem(urlX)
