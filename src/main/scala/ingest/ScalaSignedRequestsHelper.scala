@@ -1,8 +1,7 @@
-package retrieval
+package ingest
 
 import scala.collection.mutable
-import scala.collection.mutable.Map
-import scala.collection.mutable.TreeMap
+import scala.collection.mutable.{Map, TreeMap}
 import scala.util.Try
 
 case class ScalaSignedRequestsHelper(endpoint : String, awsAccessKeyId : String, awsSecretKey : String){
