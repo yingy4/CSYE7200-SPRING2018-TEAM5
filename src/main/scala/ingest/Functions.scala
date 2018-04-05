@@ -1,13 +1,16 @@
 package ingest
 
+
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.Success
+import scala.util.{Failure, Success, Try}
+import scala.concurrent.ExecutionContext.Implicits.global
+
 
 
 object  Functions {
+  var count = 0
   case class Item(Color: String, Brand: String, Price: String)
 
   def transfer(item: Item): Map[String, Any] = item match {
@@ -28,18 +31,35 @@ object  Functions {
     seqItem
   }
 
-  def futureProcess(buf: ListBuffer[Any], urls: Seq[String], keyword: String): Unit = {
-    val listOfFuture = for(url <- urls) yield Future(urlToItem(url))
-    val futureOfList = Future.sequence(listOfFuture)
-    futureOfList onComplete {
-      case Success(x) => val y = for(listOfItems <- x) yield {
-        itemToAttribute(listOfItems,keyword)}
-        for(s <- y.flatten) yield {
-          buf += s
-        }
-      case _ =>
+  def futureToFutureTry(f: Future[Seq[Item]]): Future[Try[Seq[Item]]] = {
+    val result = f.map(Success(_)).recover {
+      case e: Exception => Failure(e)
     }
-    //TODO: Using to test: remember to delete!
+    result
+  }
+
+  def futureProcess(buf: ListBuffer[Any], urls: Seq[String], keyword: String): Unit = {
+    val listOfFuture = for(url <- urls) yield {
+      Future(urlToItem(url))
+    }
+    val listOfFutureTrys = listOfFuture.map(futureToFutureTry(_))
+    val futureListOfTrys = Future.sequence(listOfFutureTrys)
+    val futureListOfSuccesses = futureListOfTrys.map(_.filter(_.isSuccess))
+    futureListOfSuccesses onComplete {
+      case Success(x) => val y = for(listOfTryItems <- x) yield {
+        for (listOfItems <- listOfTryItems) yield {
+          itemToAttribute(listOfItems, keyword)
+        }
+      }
+        for(s <- y) yield {
+          s match {
+            case Success(l) => for (t <- l) buf += t
+          }
+        }
+        count += 1
+        println(count + "/12")
+      case _ => println("xxx")
+    }
   }
 
   def noneFutureProcess(urls: Seq[String], keyword: String): List[Any] = {
