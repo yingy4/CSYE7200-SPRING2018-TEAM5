@@ -8,7 +8,7 @@ import ingest.{Functions, SearchConsole}
 object ParseTest extends App {
   val buf = scala.collection.mutable.ListBuffer.empty[Item]
   SearchConsole.SEARCH_KEYWORDS = "Trouser"
-  SearchConsole.RESPONSE_TIME_MILLI = 100
+  SearchConsole.RESPONSE_TIME_MILLI = 1000
   SearchConsole.ASYN = true
   SearchConsole.searchAllCategoriesLinear(buf)
 
@@ -23,7 +23,6 @@ object ParseTest extends App {
   val brandsUpper = UseCases.getBrands(buf)
 
   val pricesDouble = UseCases.getPrices(buf)
-//TODO: Implement a filter to drop out itmes with low currency
 //TODO: When the list grows too big, we might need Map-Reduce to process it; generating new items and added to buf while reading buf using RDD
   println(Functions.sortResultAscending(colorsLower))
   println(Functions.sortResultAscending(brandsUpper))
