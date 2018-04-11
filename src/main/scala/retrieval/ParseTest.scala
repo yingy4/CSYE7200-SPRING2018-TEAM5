@@ -2,6 +2,8 @@ package retrieval
 
 import ingest.Functions.Item
 import ingest.{Functions, SearchConsole}
+import org.apache.spark.SparkContext
+import org.apache.spark.streaming.{Seconds, StreamingContext}
 
 
 
@@ -29,4 +31,6 @@ object ParseTest extends App {
   println(pricesDouble)
   println(buf.toList.size)
 
+  val sc = new SparkContext("local[*]", "PopularElements")
+  val ssc = new StreamingContext(sc, Seconds(1))
 }
