@@ -1,85 +1,113 @@
-package ingest
-
+package ui
 import ingest.Functions.Item
-import retrieval.Client
+import ingest.SearchConsole.{ASYN, searchMultiple}
+import ingest.{Functions, SearchConsole}
+import retrieval.UseCases
 
-import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+import scala.swing._
+import scala.swing.event.{ButtonClicked, EditDone}
 
-object SearchConsole{
-  private val ENDPOINT = Client.Using.endpoint
-  private val ACCESS_KEY_ID = Client.Using.awsAccessKeyId
-  private val SECRET_KEY = Client.Using.awsSecretKey
-  var SEARCH_KEYWORDS = ""
-  var RESPONSE_TIME_MILLI = 0
-  var ASYN = true
-    //using Future to process multiple request
-    def searchMultiple(buf: ListBuffer[Item], startPage: Int, endPage: Int): Unit = {
-      val helper = ScalaSignedRequestsHelper (ENDPOINT, ACCESS_KEY_ID, SECRET_KEY)
-      val requestList = new ListBuffer[String]()
-      for (i <- startPage to endPage) {
-        val map = new mutable.HashMap[String, String]
-        map.put ("Service", "AWSECommerceService")
-        map.put ("Operation", "ItemSearch")
-        map.put ("AWSAccessKeyId", ACCESS_KEY_ID)
-        map.put ("AssociateTag", "scalaproject-20")
-        map.put ("SearchIndex", "All")
-        map.put ("Keywords", SEARCH_KEYWORDS)
-        map.put ("ResponseGroup", "Images,ItemAttributes")
-        map.put ("ItemPage" , i.toString)
-        requestList += helper.sign (map)
-      }
-      Functions.futureProcess(buf, requestList.toList)
-      Thread.sleep(RESPONSE_TIME_MILLI)
-    }
-    //return one page
-    def searchSingle(buf: ListBuffer[Item], pageNumber: Int): Unit = {
-      val helper = ScalaSignedRequestsHelper (ENDPOINT, ACCESS_KEY_ID, SECRET_KEY)
-      val map = new mutable.HashMap[String, String]
-      map.put ("Service", "AWSECommerceService")
-      map.put ("Operation", "ItemSearch")
-      map.put ("AWSAccessKeyId", ACCESS_KEY_ID)
-      map.put ("AssociateTag", "scalaproject-20")
-      map.put ("SearchIndex", "All")
-      map.put ("Keywords", SEARCH_KEYWORDS)
-      map.put ("ResponseGroup", "Images,ItemAttributes")
-      map.put ("ItemPage" , pageNumber.toString)
-      val requestList = new ListBuffer[String]()
-      requestList += helper.sign (map)
-      Functions.noneFutureProcess(buf, requestList.toList)
-    }
+//TODO: an input field, a button, and a responsive content showing result
+class UI extends MainFrame {
+  title = "CSYE7200_FINAL_PROJECT"
+  preferredSize = new Dimension(1000, 1000)
+  contents = new Contents
+}
 
-   def searchMultiple(buf: ListBuffer[Item], startPage: Int, endPage: Int, SEARCH_INDEX: String, flag: Boolean): Unit = {
-    val helper = ScalaSignedRequestsHelper (ENDPOINT, ACCESS_KEY_ID, SECRET_KEY)
-    val requestList = new ListBuffer[String]()
-    for (i <- startPage to endPage) {
-      val map = new mutable.HashMap[String, String]
-      map.put ("Service", "AWSECommerceService")
-      map.put ("Operation", "ItemSearch")
-      map.put ("AWSAccessKeyId", ACCESS_KEY_ID)
-      map.put ("AssociateTag", "scalaproject-20")
-      map.put ("SearchIndex", SEARCH_INDEX)
-      map.put ("Keywords", SEARCH_KEYWORDS)
-      map.put ("ResponseGroup", "Images,ItemAttributes")
-      map.put ("ItemPage" , i.toString)
-      requestList += helper.sign (map)
-    }
+class Contents extends BoxPanel(Orientation.Vertical) {
+  val instructionLabel = new Label("Please type in some keywords you want to search, separated by comma")
+  private def restrictHeight(s: Component) {
+    s.maximumSize = new Dimension(Short.MaxValue, s.preferredSize.height)
+  }
 
-    if (flag) {
-      println("FutureProcess starts!")
-      Functions.futureProcess(buf, requestList.toList)
-      Thread.sleep(RESPONSE_TIME_MILLI)
-    }
+  val searchField = new TextField { columns = 32 }
+  //contents += searchField
+  val searchButton= new Button("Search")
+  //contents += Button("Close") { sys.exit(0) }
+  val searchLine = new BoxPanel(Orientation.Horizontal) {
+    contents += searchField
+    contents += Swing.HStrut(20)
+    contents += searchButton
+  }
 
-    else if (!flag) {
-      Functions.noneFutureProcess(buf, requestList.toList)
-    }
+  val resultField = new TextArea {
+    rows = 10
+    lineWrap = true
+    wordWrap = true
+    editable = false
+  }
+
+  restrictHeight(searchLine)
+
+  //contents //= new BoxPanel(Orientation.Vertical){
+  contents += instructionLabel
+  contents += searchLine
+  contents += Swing.VStrut(10)
+  contents += new ScrollPane(resultField)
+  border = Swing.EmptyBorder(10, 10, 10, 10)
+  //}
+  listenTo(searchField)
+  listenTo(searchButton)
+  //listenTo(resultField)
+  reactions += {
+    //case EditDone(`searchField`) => searchNow()
+    case ButtonClicked(`searchButton`) => searchNow()
+  }
+
+  def searchNow(): Unit ={
+    val pattern = searchField.text.toLowerCase
+    val res = doProgram(pattern)
+    resultField.text = res
+    //println(pattern)
+  }
+
+  def doProgram(s : String) : String={
+    SearchConsole.SEARCH_KEYWORDS = s
+    val buf = scala.collection.mutable.ListBuffer.empty[Item]
+    //SearchConsole.SEARCH_KEYWORDS = "Trouser"
+    SearchConsole.RESPONSE_TIME_MILLI = 1000
+    SearchConsole.ASYN = true
+    searchAllCategoriesLinear(buf)
+
+
+    //  SearchConsole.searchMultiple(buf, 1,2 )
+    //  SearchConsole.searchWWW(buf)
+
+      getResult(buf)
+  }
+
+  def getResult(buf: ListBuffer[Item]):String={
+    val colorsLower = UseCases.getColors(buf)
+
+    val brandsUpper = UseCases.getBrands(buf)
+
+    val pricesDouble = UseCases.getPrices(buf)
+    //TODO: When the list grows too big, we might need Map-Reduce to process it; generating new items and added to buf while reading buf using RDD
+    println(Functions.sortResultAscending(colorsLower))
+    println(Functions.sortResultAscending(brandsUpper))
+    println(pricesDouble)
+    println(buf.toList.size)
+    val sb = new StringBuilder
+    sb.append(Functions.sortResultAscending(colorsLower))
+    sb.append('\n')
+    sb.append(Functions.sortResultAscending(brandsUpper))
+    sb.append('\n')
+    sb.append(pricesDouble)
+    sb.append('\n')
+    sb.toString()
   }
 
   def searchAllCategoriesLinear(buf: ListBuffer[Item], flag: Boolean = ASYN): Unit = {
     searchMultiple(buf,1,5,"Fashion",flag)
+    resultField.text= getResult(buf)
+    resultField.validate()
     searchMultiple(buf,6,10,"Fashion",flag)
+    resultField.text= getResult(buf)
+    resultField.validate()
     searchMultiple(buf,1,5,"FashionBaby",flag)
+    resultField.text= getResult(buf)
+    resultField.validate()
     searchMultiple(buf,6,10,"FashionBaby",flag)
     searchMultiple(buf,1,5,"FashionBoys",flag)
     searchMultiple(buf,6,10,"FashionBoys",flag)
@@ -159,5 +187,13 @@ object SearchConsole{
     searchMultiple(buf,6,10,"Wine",flag)
     searchMultiple(buf,1,5,"Wireless",flag)
     searchMultiple(buf,6,10,"Wireless",flag)
+  }
+}
+
+object GUIProgram{
+  def main(args: Array[String]){
+    val ui =  new UI
+    ui.visible = true
+    println("starting program")
   }
 }
