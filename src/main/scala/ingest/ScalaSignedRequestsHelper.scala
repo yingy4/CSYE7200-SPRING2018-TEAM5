@@ -1,7 +1,7 @@
 package ingest
 
-import scala.collection.mutable
-import scala.collection.mutable.{Map, TreeMap}
+import scala.collection.SortedMap
+import scala.collection.mutable.Map
 import scala.util.Try
 
 case class ScalaSignedRequestsHelper(endpoint : String, awsAccessKeyId : String, awsSecretKey : String){
@@ -19,7 +19,7 @@ case class ScalaSignedRequestsHelper(endpoint : String, awsAccessKeyId : String,
 
   def sign(params : Map[String, String]) : String = {
     params.put("Timestamp", timestamp())
-    val sortedParamMap = TreeMap[String, String]() ++ params
+    val sortedParamMap = SortedMap[String, String]() ++ params
     val canonicalQS = canonicalize(sortedParamMap)
     val toSign = REQUEST_METHOD + "\n" + endpoint + "\n" + REQUEST_URI +"\n" + canonicalQS
     val hmac1 = hmac(toSign)
@@ -44,8 +44,8 @@ case class ScalaSignedRequestsHelper(endpoint : String, awsAccessKeyId : String,
     timestamp
   }
 
-  def canonicalize(sortedMap : mutable.SortedMap[String, String]): String ={
-    def encode(map: mutable.SortedMap[String, String]):String = {
+  def canonicalize(sortedMap : SortedMap[String, String]): String ={
+    def encode(map: SortedMap[String, String]):String = {
       val buffer = new StringBuffer()
       for(kv <- sortedMap){
         buffer.append(percentEncodeRfc3986(kv._1))
