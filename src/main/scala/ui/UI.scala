@@ -15,6 +15,13 @@ class UI extends MainFrame {
   contents = new Contents
 }
 
+object inc {
+  var s = 0
+  def ic()={
+    s +=1
+  }
+}
+
 class Contents extends BoxPanel(Orientation.Vertical) {
   val instructionLabel = new Label("Please type in some keywords you want to search, separated by comma")
   private def restrictHeight(s: Component) {
@@ -44,7 +51,8 @@ class Contents extends BoxPanel(Orientation.Vertical) {
   contents += instructionLabel
   contents += searchLine
   contents += Swing.VStrut(10)
-  contents += new ScrollPane(resultField)
+  val showField = new ScrollPane(resultField)
+  contents += showField
   border = Swing.EmptyBorder(10, 10, 10, 10)
   //}
   listenTo(searchField)
@@ -55,26 +63,67 @@ class Contents extends BoxPanel(Orientation.Vertical) {
     case ButtonClicked(`searchButton`) => searchNow()
   }
 
-  def searchNow(): Unit ={
+  val timer = new javax.swing.Timer(100, Swing.ActionListener(e =>
+  {
+    //resultField.repaint()
+    // showField.repaint()
+    inc.ic()
+    resultField.text=inc.s.toString
+    showField.repaint()
+  }))
+
+  val timer2 = new javax.swing.Timer(10000, Swing.ActionListener(e =>
+  {
+    //resultField.repaint()
+    // showField.repaint()
     val pattern = searchField.text.toLowerCase
-    val res = doProgram(pattern)
-    resultField.text = res
+    val res = doProgram1(pattern)
+    val res2 = doProgram2(pattern)
+    //showField.repaint()
+  }))
+
+  def searchNow(): Unit ={
+    //timer.start()
+    //timer2.start()
+    val pattern = searchField.text.toLowerCase
+    val res = doProgram1(pattern)
+    val res2 = doProgram2(pattern)
+    //val pattern = searchField.text.toLowerCase
+    //val res = doProgram(pattern)
+    //resultField.text = res
     //println(pattern)
+    //val pattern = searchField.text.toLowerCase
+    //val res = doProgram1(pattern)
+    //val res2 = doProgram2(pattern)
+    //resultField.text = "123"
+    //timer.stop()
   }
 
   def doProgram(s : String) : String={
     SearchConsole.SEARCH_KEYWORDS = s
     val buf = scala.collection.mutable.ListBuffer.empty[Item]
-    //SearchConsole.SEARCH_KEYWORDS = "Trouser"
     SearchConsole.RESPONSE_TIME_MILLI = 1000
     SearchConsole.ASYN = true
     searchAllCategoriesLinear(buf)
+    getResult(buf)
+  }
 
+  def doProgram1(s : String) : String={
+    SearchConsole.SEARCH_KEYWORDS = s
+    val buf = scala.collection.mutable.ListBuffer.empty[Item]
+    SearchConsole.RESPONSE_TIME_MILLI = 1000
+    SearchConsole.ASYN = true
+    searchAllCategoriesLinear1(buf)
+    getResult(buf)
+  }
 
-    //  SearchConsole.searchMultiple(buf, 1,2 )
-    //  SearchConsole.searchWWW(buf)
-
-      getResult(buf)
+  def doProgram2(s : String) : String={
+    SearchConsole.SEARCH_KEYWORDS = s
+    val buf = scala.collection.mutable.ListBuffer.empty[Item]
+    SearchConsole.RESPONSE_TIME_MILLI = 1000
+    SearchConsole.ASYN = true
+    searchAllCategoriesLinear2(buf)
+    getResult(buf)
   }
 
   def getResult(buf: ListBuffer[Item]):String={
@@ -100,17 +149,21 @@ class Contents extends BoxPanel(Orientation.Vertical) {
 
   def searchAllCategoriesLinear(buf: ListBuffer[Item], flag: Boolean = ASYN): Unit = {
     searchMultiple(buf,1,5,"Fashion",flag)
-    resultField.text= getResult(buf)
-    resultField.validate()
     searchMultiple(buf,6,10,"Fashion",flag)
     resultField.text= getResult(buf)
-    resultField.validate()
+    showField.repaint()
     searchMultiple(buf,1,5,"FashionBaby",flag)
     resultField.text= getResult(buf)
-    resultField.validate()
+    showField.repaint()
     searchMultiple(buf,6,10,"FashionBaby",flag)
+    resultField.text= getResult(buf)
+    showField.repaint()
     searchMultiple(buf,1,5,"FashionBoys",flag)
+    resultField.text= getResult(buf)
+    showField.repaint()
     searchMultiple(buf,6,10,"FashionBoys",flag)
+    resultField.text= getResult(buf)
+    showField.repaint()
     searchMultiple(buf,1,5,"FashionGirls",flag)
     searchMultiple(buf,6,10,"FashionGirls",flag)
     searchMultiple(buf,1,5,"FashionMen",flag)
@@ -187,6 +240,63 @@ class Contents extends BoxPanel(Orientation.Vertical) {
     searchMultiple(buf,6,10,"Wine",flag)
     searchMultiple(buf,1,5,"Wireless",flag)
     searchMultiple(buf,6,10,"Wireless",flag)
+  }
+
+  def searchAllCategoriesLinear1(buf: ListBuffer[Item], flag: Boolean = ASYN): Unit = {
+    searchMultiple(buf,1,5,"Fashion",flag)
+    println("#####")
+    resultField.text= getResult(buf)
+    println("#####")
+    Thread.sleep(100)
+    showField.repaint()
+    println("#####")
+    resultField.text= getResult(buf)
+    showField.repaint()
+    searchMultiple(buf,6,10,"Fashion",flag)
+    resultField.text= getResult(buf)
+    showField.repaint()
+    searchMultiple(buf,1,5,"FashionBaby",flag)
+    resultField.text= getResult(buf)
+    showField.repaint()
+    searchMultiple(buf,6,10,"FashionBaby",flag)
+    resultField.text= getResult(buf)
+    showField.repaint()
+    searchMultiple(buf,1,5,"FashionBoys",flag)
+    resultField.text= getResult(buf)
+    showField.repaint()
+    searchMultiple(buf,6,10,"FashionBoys",flag)
+    resultField.text= getResult(buf)
+    showField.repaint()
+  }
+
+  def searchAllCategoriesLinear2(buf: ListBuffer[Item], flag: Boolean = ASYN): Unit = {
+    searchMultiple(buf,1,5,"Automotive",flag)
+    resultField.text= getResult(buf)
+    showField.repaint()
+    searchMultiple(buf,6,10,"Automotive",flag)
+    resultField.text= getResult(buf)
+    showField.repaint()
+    searchMultiple(buf,1,5,"Baby",flag)
+    resultField.text= getResult(buf)
+    showField.repaint()
+    searchMultiple(buf,6,10,"Baby",flag)
+    resultField.text= getResult(buf)
+    showField.repaint()
+    searchMultiple(buf,1,5,"Beauty",flag)
+    resultField.text= getResult(buf)
+    showField.repaint()
+    searchMultiple(buf,6,10,"Beauty",flag)
+    resultField.text= getResult(buf)
+    searchMultiple(buf,1,5,"Blended",flag)
+    resultField.text= getResult(buf)
+    showField.repaint()
+    searchMultiple(buf,6,10,"Blended",flag)
+    resultField.text= getResult(buf)
+    showField.repaint()
+    searchMultiple(buf,1,5,"Books",flag)
+    resultField.text= getResult(buf)
+    showField.repaint()
+    searchMultiple(buf,6,10,"Books",flag)
   }
 }
 
