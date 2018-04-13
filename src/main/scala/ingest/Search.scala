@@ -10,8 +10,8 @@ object SearchConsole{
   private val ENDPOINT = Client.Using.endpoint
   private val ACCESS_KEY_ID = Client.Using.awsAccessKeyId
   private val SECRET_KEY = Client.Using.awsSecretKey
-  var SEARCH_KEYWORDS = ""
-  var RESPONSE_TIME_MILLI = 0
+  var SEARCH_KEYWORDS = "Trouse"
+  var RESPONSE_TIME_MILLI = 100
   var ASYN = true
     //using Future to process multiple request
     def searchMultiple(buf: ListBuffer[Item], startPage: Int, endPage: Int): Unit = {
