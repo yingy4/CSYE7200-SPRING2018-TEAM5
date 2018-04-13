@@ -1,6 +1,8 @@
 package ingest
 
 
+import org.apache.spark.rdd.RDD
+
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
@@ -11,10 +13,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object  Functions {
   var count = 0
-  case class Item(Color: String, Brand: String, Price: String)
+  case class Item(Color: String, Brand: String, Price: String, URL: String)
 
   def transfer(item: Item): Map[String, String] = item match {
-    case Item(c, b, p) => Map("Color" -> c, "Brand" -> b, "Price" -> p)//TODO:add more attributes
+    case Item(c, b, p, u) => Map("Color" -> c, "Brand" -> b, "Price" -> p, "URL" -> u)//TODO:add more attributes
   }
 
   def urlToItem(url: String): Seq[Item] = {
@@ -25,7 +27,8 @@ object  Functions {
       val color = (x \\ "Color").text
       val brand = (x \\ "Brand").text
       val price = (x \\ "FormattedPrice").text
-      val item = Item(color, brand, price)
+      val url = (x \\ "DetailPageURL").text
+      val item = Item(color, brand, price, url)
       item
     }
     seqItem
@@ -90,13 +93,35 @@ object  Functions {
     seq.flatten
   }
 
-  def sortResultAscending(list: List[String]): Seq[(String, Int)] = {
+  def sortResultDescending(list: List[String]): Seq[(String, Int)] = {
     list.groupBy(w => w).mapValues(_.size).toSeq.sortWith(_._2 > _._2)
+  }
+
+  def sortResultDecending(rdd: RDD[String]): RDD[(String, Int)] = {
+    rdd.map(String => (String, 1)).reduceByKey(_+_, 1).map(item => item.swap).sortByKey(false, 1).map(item => item.swap)
   }
 
   def safeStringToDouble(str: String): Option[Double] = try {
     Some(str.toDouble)
   } catch {
     case e: NumberFormatException => None
+  }
+
+  def seperate(lines: RDD[String],separator: String) = {
+    lines.flatMap(_.split(separator))
+  }
+
+  def mergeAndSort(list: List[(String, Int)]): List[(String, Int)] = {
+    list.groupBy(_._1).map( kv => (kv._1, kv._2.map( _._2).sum ) ).toSeq.sortWith(_._2 > _._2).toList
+  }
+
+  def writeFile(fileName: String, list: List[String]) = {
+    import java.io._
+    val file = fileName + ".txt"
+    val writer = new BufferedWriter(new FileWriter(file, true))
+    for(x <- list){
+      writer.append(x + ",")
+    }
+    writer.close()
   }
 }

@@ -1,36 +1,28 @@
 package retrieval
 
-import ingest.Functions.Item
-import ingest.{Functions, SearchConsole}
-import org.apache.spark.SparkContext
-import org.apache.spark.streaming.{Seconds, StreamingContext}
+import java.io.{BufferedWriter, FileWriter}
 
-
+import retrieval.UseCases.{Top_10_Prices, Top_K_Brands, Top_K_Colors, buf}
+import org.apache.log4j.Logger
+import org.apache.log4j.Level
 
 object ParseTest extends App {
-  val buf = scala.collection.mutable.ListBuffer.empty[Item]
-  SearchConsole.SEARCH_KEYWORDS = "Trouser"
-  SearchConsole.RESPONSE_TIME_MILLI = 1000
-  SearchConsole.ASYN = true
-  SearchConsole.searchAllCategoriesLinear(buf)
 
-
-  //  SearchConsole.searchMultiple(buf, 1,2 )
-  //  SearchConsole.searchWWW(buf)
+  Logger.getLogger("org").setLevel(Level.OFF)
+  Logger.getLogger("akka").setLevel(Level.OFF)
 
 
 
-  val colorsLower = UseCases.getColors(buf)
+  Top_K_Colors(10).foreach(println)
+  Top_K_Brands(10).foreach(println)
+  Top_10_Prices().foreach(println)
 
-  val brandsUpper = UseCases.getBrands(buf)
+  val file4 = "item.txt"
+  val writer4 = new BufferedWriter(new FileWriter(file4, true))
+  for(x <- buf){
+    writer4.append(x + "\n")
+  }
+  writer4.close()
 
-  val pricesDouble = UseCases.getPrices(buf)
-//TODO: When the list grows too big, we might need Map-Reduce to process it; generating new items and added to buf while reading buf using RDD
-  println(Functions.sortResultAscending(colorsLower))
-  println(Functions.sortResultAscending(brandsUpper))
-  println(pricesDouble)
-  println(buf.toList.size)
 
-  val sc = new SparkContext("local[*]", "PopularElements")
-  val ssc = new StreamingContext(sc, Seconds(1))
 }
