@@ -4,6 +4,12 @@ import scala.collection.SortedMap
 import scala.collection.mutable.Map
 import scala.util.Try
 
+/**
+  * Cited
+  * reference:
+  *
+  */
+
 case class ScalaSignedRequestsHelper(endpoint : String, awsAccessKeyId : String, awsSecretKey : String){
   val UTF8_CHARSET = "UTF-8"
   val HMAC_SHA256_ALGORITHM = "HmacSHA256"

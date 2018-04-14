@@ -5,33 +5,40 @@ import ingest.{Functions, SearchConsole}
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.{Seconds, StreamingContext}
-
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
+
+/**
+  * Created by Team5 on 4/14/2018.
+  * reference:
+  *
+  */
 
 object UseCases {
   //set Console
   SearchConsole.SEARCH_KEYWORDS = "Trouser"
   SearchConsole.RESPONSE_TIME_MILLI = 100
   SearchConsole.ASYN = true
-  //set CACHE
+  //set whether CACHE to .txt
   var CACHE_COLORS = true
   var CACHE_BRANDS = true
   var CACHE_PRICES = true
 
+  //init buf and start search
   val buf = scala.collection.mutable.ListBuffer.empty[Item]
   SearchConsole.searchAllCategoriesLinear(buf)
   //set spark context
   val sc = new SparkContext("local[*]", "PopularElements")
   val ssc = new StreamingContext(sc, Seconds(1))
 
+  //get data from running APP and reading .txt
   def Top_K_Colors(k: Int): List[(String, Int)] = {
-    val colorsLower = getLocalColors(buf, CACHE_COLORS)//a list of color unsorted
+    val colorsLower = getLocalColors(buf, CACHE_COLORS)//a list of color unsorted(what we get from running App one time)
     val color_RDD = sc.textFile("color.txt")
     val colorRDD =  Functions.sortResultDecending(Functions.seperate(color_RDD, ",")).
-      filter(_._2 > 10)//a RDD of sorted color tuples filtered
+      filter(_._2 > 10)//a RDD of sorted color tuples filtered out less than and equal to 10
     val colorSeq = Functions.sortResultDescending(colorsLower).
-      filter(_._2 > 1)//a seq of sorted color tuples
+      filter(_._2 > 1)//a seq of sorted color tuples filtered out less than and equal to 1
     val colorCombined =  colorRDD.collect().toList ++ colorSeq.toList
     val colorResult =  Functions.mergeAndSort(colorCombined)
     colorResult.take(k)
@@ -58,6 +65,18 @@ object UseCases {
     priceCombined
   }
 
+  /**
+    * KNN: k-means using original data points as initial cluster centers
+    * description: unsupervised learning algorithm(no need to tag). iteratively train the model until loss less than a threshold. automatically cluster all data points to k clusters
+    * step:
+    * 1.randomly choose K points in data set as starting cluster c[k] where 1<=k<=K
+    * 2.for every data[i] in data_all, calculate distance between data[i] and every cluster c[k](k from 1 to K), K*data_all.size times computation in total
+    *   assign data[i] to its nearest cluster c[k], denoted as (c[k], data[i])
+    * 3.for all data assigned to same c[k], sum and average those data to get the new value for c[k]: (c[k], data[i]) groupBy key and reduce (sum&average value)
+    * 4.if stop condition meets, stop; otherwise using newly generated clusters in step 3 to repeat step 2 and step 3
+    */
+
+  //using KNN to cluster 5 classes and divide every class into 10 intervals with same distance between
   def Top_K_Prices(): Map[String, List[(String, Int)]] = {
     val pricesString = getLocalPricesString(buf, CACHE_PRICES)
     val price_RDD = sc.textFile("price.txt")
@@ -188,6 +207,12 @@ object UseCases {
 //    result_vectorized.flatten.sortWith(_._1>_._1).toList
 //  }
   //if cache si true, store results in .txt
+
+  /**
+    * parameters: buf: ListBuff[Item, Item, ...], cache is to write to .txt or not
+    * description: process Strings into same format
+    */
+
   def getLocalColors(buf: ListBuffer[Item], cache: Boolean): List[String] = {
     val colors = Functions.itemToAttribute(buf, "Color")
     val letterParser = "[ A-Za-z]".r
@@ -195,14 +220,14 @@ object UseCases {
       letterParser.findAllMatchIn(s).toList.mkString.toLowerCase.trim
     }
     if (cache) Functions.writeFile("color", colorsLower)
-    colorsLower
+    colorsLower //something like (black, white, pink, ...)
   }
 
   def getLocalBrands(buf: ListBuffer[Item], cache: Boolean): List[String] = {
     val brands = Functions.itemToAttribute(buf, "Brand")
     val brandsUpper = for(s <- brands.toList) yield s.toUpperCase.trim
     if (cache) Functions.writeFile("brand", brandsUpper)
-    brandsUpper
+    brandsUpper // something like (LV, GUCCI, GIVENCHY, ...)
   }
 
   def getLocalPricesDouble(buf: ListBuffer[Item]): List[Double] = {
@@ -222,6 +247,7 @@ object UseCases {
     pricesString
   }
 
+  //divide numerical values into 10 equidistant intervals
   def vectorizedListOfDouble(priceDouble: List[Double]): List[(String, Int)] = {
     val interval = (priceDouble.max - priceDouble.min)/10
     val priceResult = priceDouble.groupBy(price => price match {
