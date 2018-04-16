@@ -2,16 +2,22 @@ package ingest
 
 import ingest.Functions.Item
 import retrieval.Client
-
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+
+/**
+  * Created by Team5 on 4/14/2018.
+  * reference:
+  *
+  */
 
 object SearchConsole{
   private val ENDPOINT = Client.Using.endpoint
   private val ACCESS_KEY_ID = Client.Using.awsAccessKeyId
   private val SECRET_KEY = Client.Using.awsSecretKey
-  var SEARCH_KEYWORDS = "Trouse"
-  var RESPONSE_TIME_MILLI = 100
+  //don't need to set here below any value!(as long as you set them in main)
+  var SEARCH_KEYWORDS = ""
+  var RESPONSE_TIME_MILLI = 0
   var ASYN = true
     //using Future to process multiple request
     def searchMultiple(buf: ListBuffer[Item], startPage: Int, endPage: Int): Unit = {
@@ -49,6 +55,7 @@ object SearchConsole{
       Functions.noneFutureProcess(buf, requestList.toList)
     }
 
+  //same. you can assign certain range of pages to search
    def searchMultiple(buf: ListBuffer[Item], startPage: Int, endPage: Int, SEARCH_INDEX: String, flag: Boolean): Unit = {
     val helper = ScalaSignedRequestsHelper (ENDPOINT, ACCESS_KEY_ID, SECRET_KEY)
     val requestList = new ListBuffer[String]()
@@ -64,7 +71,7 @@ object SearchConsole{
       map.put ("ItemPage" , i.toString)
       requestList += helper.sign (map)
     }
-
+    //decide whether to parallel
     if (flag) {
       println("FutureProcess starts!")
       Functions.futureProcess(buf, requestList.toList)
@@ -76,6 +83,7 @@ object SearchConsole{
     }
   }
 
+  //return all results! 82 in total, every 5 urls wrapped in a Future(5*10=50 Items), 82*50=4100 Items in total theoretically!
   def searchAllCategoriesLinear(buf: ListBuffer[Item], flag: Boolean = ASYN): Unit = {
     searchMultiple(buf,1,5,"Fashion",flag)
     searchMultiple(buf,6,10,"Fashion",flag)
