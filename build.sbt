@@ -19,6 +19,8 @@ libraryDependencies += "commons-codec" % "commons-codec" % "1.9"
 // https://mvnrepository.com/artifact/org.scala-lang.modules/scala-swing
 libraryDependencies += "org.scala-lang.modules" %% "scala-swing" % "2.0.3"
 
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+
 
 
 
