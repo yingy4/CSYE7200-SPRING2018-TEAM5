@@ -34,6 +34,7 @@ Our goal is to process data from responses of calling Amazon Product Advertising
 
 # Something about the API
 There are a few restrictions on Amazon Product Advertising API if you don't have an Amazon verified advertising account and so do we.
+
 1\. Number of API calls: Limited to 8,640 requests per day. once this limit is reached, will be limited to one request every ten seconds
 
 2\. Number of item pages: Only allow at most 10 pages of items,10 items per page. Usually pages after 6th are blank.
