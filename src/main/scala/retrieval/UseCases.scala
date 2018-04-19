@@ -16,8 +16,8 @@ import scala.util.Random
 
 object UseCases {
   //set Console
-  SearchConsole.SEARCH_KEYWORDS = "Trouser"
-  SearchConsole.RESPONSE_TIME_MILLI = 100
+  SearchConsole.SEARCH_KEYWORDS = "Socks"
+  SearchConsole.RESPONSE_TIME_MILLI = 200
   SearchConsole.ASYN = true
   //set whether CACHE to .txt
   var CACHE_COLORS = true
