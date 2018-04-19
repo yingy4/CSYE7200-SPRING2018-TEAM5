@@ -2,7 +2,7 @@ package retrieval
 
 import java.io.{BufferedWriter, FileWriter}
 
-import retrieval.UseCases.{Top_k_p, Top_K_Brands, Top_K_Colors, buf}
+import retrieval.UseCases.{Top_K_Prices, Top_K_Brands, Top_K_Colors, buf}
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
 
@@ -15,10 +15,10 @@ object ParseTest extends App {
 
   Top_K_Colors(10).foreach(println)
   Top_K_Brands(10).foreach(println)
-  print(Top_k_p())//normal prices in String format
+//  print(Top_k_p())//normal prices in String format
 
   //k-means deal with prices
-//  Top_K_Prices().foreach(println)
+  Top_K_Prices().foreach(println)
 
 
 
