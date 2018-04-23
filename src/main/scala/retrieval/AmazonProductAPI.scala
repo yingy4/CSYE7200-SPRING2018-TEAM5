@@ -1,10 +1,9 @@
 package retrieval
 
-case class  AmazonClient(endpoint : String, awsAccessKeyId : String, awsSecretKey : String) {
-}
+case class  AmazonClient(endpoint : String, awsAccessKeyId : String, awsSecretKey : String)
 //user can create new client and switch Using to different clients
 object Client {
-  var Using = Clients.Houze_Liu
+  val Using = Clients.Houze_Liu
 }
 
 object Clients{

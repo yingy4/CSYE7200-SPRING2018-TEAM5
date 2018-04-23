@@ -16,23 +16,17 @@ import scala.util.Random
 
 object UseCases {
   //set Console
-  SearchConsole.SEARCH_KEYWORDS = "Socks"
-  SearchConsole.RESPONSE_TIME_MILLI = 200
-  SearchConsole.ASYN = true
   //set whether CACHE to .txt
-  var CACHE_COLORS = true
-  var CACHE_BRANDS = true
-  var CACHE_PRICES = true
+  val CACHE_COLORS = true
+  val CACHE_BRANDS = true
+  val CACHE_PRICES = true
 
-  //init buf and start search
-  val buf = scala.collection.mutable.ListBuffer.empty[Item]
-  SearchConsole.searchAllCategoriesLinear(buf)
   //set spark context
   val sc = new SparkContext("local[*]", "PopularElements")
   val ssc = new StreamingContext(sc, Seconds(1))
 
   //get data from running APP and reading .txt
-  def Top_K_Colors(k: Int): List[(String, Int)] = {
+  def Top_K_Colors(k: Int, buf: ListBuffer[Item]): List[(String, Int)] = {
     val colorsLower = getLocalColors(buf, CACHE_COLORS)//a list of color unsorted(what we get from running App one time)
     val color_RDD = sc.textFile("color.txt")
     val colorRDD =  Functions.sortResultDecending(Functions.seperate(color_RDD, ",")).
@@ -44,7 +38,7 @@ object UseCases {
     colorResult.take(k)
   }
 
-  def Top_K_Brands(k: Int): List[(String, Int)] = {
+  def Top_K_Brands(k: Int, buf: ListBuffer[Item]): List[(String, Int)] = {
     val brandsUpper = getLocalBrands(buf, CACHE_BRANDS)
     val brand_RDD = sc.textFile("brand.txt")
     val brandRDD = Functions.sortResultDecending(Functions.seperate(brand_RDD, ",")).
@@ -56,7 +50,7 @@ object UseCases {
     brandResult.take(k)
   }
 
-  def Top_k_p(): List[String] = {
+  def Top_k_p(buf: ListBuffer[Item]): List[String] = {
     val pricesString = getLocalPricesString(buf, CACHE_PRICES)
     val price_RDD = sc.textFile("price.txt")
     val priceRDD =  Functions.seperate(price_RDD, ",")
@@ -77,114 +71,114 @@ object UseCases {
     */
 
   //using KNN to cluster 5 classes and divide every class into 10 intervals with same distance between
-  def Top_K_Prices(): Map[String, List[(String, Int)]] = {
-    val pricesString = getLocalPricesString(buf, CACHE_PRICES)
-    val price_RDD = sc.textFile("price.txt")
-    val priceRDD =  Functions.seperate(price_RDD, ",")
-    val priceSeq = sc.parallelize(pricesString)
-    val priceCombined =  priceRDD ++ priceSeq
-    val data = priceCombined.map(x=>Functions.safeStringToDouble(x)).flatMap(x => x)
-    def kNN_Spark(data: RDD[Double]): List[Double] = {
-      val K = 5 //number of clusters
-      val threshold = 50.0 // threshold to stop training
-
-      val clusterlist = scala.collection.mutable.ListBuffer.empty[Double]//contain cluster centers as c[k]
-      //generate k clusters randomly
-      val datasize = data.count().toInt
-      for(a <- 1 to K){
-        val rand = (new Random).nextInt(datasize-1)
-        clusterlist += data.zipWithIndex.map{case (k,v) => (v,k)}.lookup(rand)(0)
-      }
-
-      var gap = 0.0 // record difference between loss and previous loss
-      var clusterlist_update = clusterlist.toList// initiate start clusterlist_start
-      var loss_previous = 0.0
-      //training process
-      while(gap>threshold) {
-        var loss = 0.0 // record loss
-        val data_clustered // allocate data[i] to nearest cluster center c[k], return a tuple(c[k], data[i])
-        = data.map(data_i => {
-          var min = data.max
-          var index = datasize - 1
-          for(k <- 0 to clusterlist_update.size-1)
-            if((math.abs(data_i - clusterlist_update(k))<min)) // using abs loss
-            {min = math.abs(data_i - clusterlist_update(k))
-              index = k}
-          loss += min
-          (index+1, data_i)
-        })
-        gap = loss_previous - loss
-        loss_previous = loss
-        val clusterlist_generated = data_clustered.groupBy(_._1).map(kv => (kv._1, kv._2.map(_._2).sum/kv._2.size)).sortBy(_._1).map(_._2).collect().toList//sum and avg data_clustered to get new clusterlist
-        clusterlist_update = clusterlist_generated // substitute newly generated clusters to old ones
-      }
-      clusterlist_update
-    }
-
-    def vectorizedListOfDoubleRDD(priceDouble: RDD[Double]): List[(String, Int)] = {
-      val interval = (priceDouble.max - priceDouble.min)/10
-      val priceMax = priceDouble.max()
-      val priceResult = priceDouble.groupBy(price => price match {
-        case x if (priceMax - 1*interval)<x & x<=(priceMax) => "(%1.2f - %1.2f]".format(priceMax - 1*interval, priceMax)
-        case x if (priceMax - 2*interval)<x & x<=(priceMax - 1*interval) => "(%1.2f - %1.2f]".format(priceMax - 2*interval, priceMax - 1*interval)
-        case x if (priceMax - 3*interval)<x & x<=(priceMax - 2*interval) => "(%1.2f - %1.2f]".format(priceMax - 3*interval, priceMax - 2*interval)
-        case x if (priceMax - 4*interval)<x & x<=(priceMax - 3*interval) => "(%1.2f - %1.2f]".format(priceMax - 4*interval, priceMax - 3*interval)
-        case x if (priceMax - 5*interval)<x & x<=(priceMax - 4*interval) => "(%1.2f - %1.2f]".format(priceMax - 5*interval, priceMax - 4*interval)
-        case x if (priceMax - 6*interval)<x & x<=(priceMax - 5*interval) => "(%1.2f - %1.2f]".format(priceMax - 6*interval, priceMax - 5*interval)
-        case x if (priceMax - 7*interval)<x & x<=(priceMax - 6*interval) => "(%1.2f - %1.2f]".format(priceMax - 7*interval, priceMax - 6*interval)
-        case x if (priceMax - 8*interval)<x & x<=(priceMax - 7*interval) => "(%1.2f - %1.2f]".format(priceMax - 8*interval, priceMax - 7*interval)
-        case x if (priceMax - 9*interval)<x & x<=(priceMax - 8*interval) => "(%1.2f - %1.2f]".format(priceMax - 9*interval, priceMax - 8*interval)
-        case x if (priceMax - 10*interval)<=x & x<=(priceMax - 9*interval) => "(%1.2f - %1.2f]".format(priceMax - 10*interval, priceMax - 9*interval)
-      }).mapValues(_.size).collect().toSeq.sortWith(_._2 > _._2).toList //sort list result descending
-      priceResult
-    }
-
-    def vectorizedListOfDouble(priceDouble: List[Double]): List[(String, Int)] = {
-      val interval = (priceDouble.max - priceDouble.min)/10
-      val priceResult = priceDouble.groupBy(price => price match {
-        case x if (priceDouble.max - 1*interval)<x & x<=(priceDouble.max) => "(%1.2f - %1.2f]".format(priceDouble.max - 1*interval, priceDouble.max)
-        case x if (priceDouble.max - 2*interval)<x & x<=(priceDouble.max - 1*interval) => "(%1.2f - %1.2f]".format(priceDouble.max - 2*interval, priceDouble.max - 1*interval)
-        case x if (priceDouble.max - 3*interval)<x & x<=(priceDouble.max - 2*interval) => "(%1.2f - %1.2f]".format(priceDouble.max - 3*interval, priceDouble.max - 2*interval)
-        case x if (priceDouble.max - 4*interval)<x & x<=(priceDouble.max - 3*interval) => "(%1.2f - %1.2f]".format(priceDouble.max - 4*interval, priceDouble.max - 3*interval)
-        case x if (priceDouble.max - 5*interval)<x & x<=(priceDouble.max - 4*interval) => "(%1.2f - %1.2f]".format(priceDouble.max - 5*interval, priceDouble.max - 4*interval)
-        case x if (priceDouble.max - 6*interval)<x & x<=(priceDouble.max - 5*interval) => "(%1.2f - %1.2f]".format(priceDouble.max - 6*interval, priceDouble.max - 5*interval)
-        case x if (priceDouble.max - 7*interval)<x & x<=(priceDouble.max - 6*interval) => "(%1.2f - %1.2f]".format(priceDouble.max - 7*interval, priceDouble.max - 6*interval)
-        case x if (priceDouble.max - 8*interval)<x & x<=(priceDouble.max - 7*interval) => "(%1.2f - %1.2f]".format(priceDouble.max - 8*interval, priceDouble.max - 7*interval)
-        case x if (priceDouble.max - 9*interval)<x & x<=(priceDouble.max - 8*interval) => "(%1.2f - %1.2f]".format(priceDouble.max - 9*interval, priceDouble.max - 8*interval)
-        case x if (priceDouble.max - 10*interval)<=x & x<=(priceDouble.max - 9*interval) => "(%1.2f - %1.2f]".format(priceDouble.max - 10*interval, priceDouble.max - 9*interval)
-        case _ => "other"
-      }).mapValues(_.size).toSeq.sortWith(_._2 > _._2).toList //sort list result descending
-      priceResult
-    }
-
-    val clusterlist_spark = kNN_Spark(data)
-    val dataLocal = data.collect()
-    val datasize = dataLocal.size
-    val data_result = dataLocal.map(data_i => {
-      var min = data.max
-      var index = datasize - 1
-      for(k <- 0 to clusterlist_spark.size-1)
-        if((math.abs(data_i - clusterlist_spark(k))<min)) {
-          min = math.abs(data_i - clusterlist_spark(k))
-          index = k
-        }
-      (index+1, data_i)
-    }).groupBy(_._1).map(kv => (kv._1, kv._2.map(_._2).toList)).toSeq.sortWith(_._1 < _._1)
-    val result_vectorized = for(l <- data_result) yield l match {
-      case (a, b) => Some(clusterlist_spark(a-1), vectorizedListOfDouble(b))
-      case _ => None
-    }
-    val result = result_vectorized.flatten.sortWith(_._1>_._1)
-    var RL:Map[String,List[(String, Int)]]=
-      Map("Very High"->result(0)._2,
-        "High"->result(1)._2,
-        "Medium"->result(2)._2,
-        "Low"->result(3)._2,
-        "Very Cheap"->result(4)._2)
-    RL
+//  def Top_K_Prices(buf: ListBuffer[Item]): Map[String, List[(String, Int)]] = {
+//    val pricesString = getLocalPricesString(buf, CACHE_PRICES)
+//    val price_RDD = sc.textFile("price.txt")
+//    val priceRDD =  Functions.seperate(price_RDD, ",")
+//    val priceSeq = sc.parallelize(pricesString)
+//    val priceCombined =  priceRDD ++ priceSeq
+//    val data = priceCombined.map(x=>Functions.safeStringToDouble(x)).flatMap(x => x)
+//    def kNN_Spark(data: RDD[Double]): List[Double] = {
+//      val K = 5 //number of clusters
+//      val threshold = 50.0 // threshold to stop training
+//
+//      val clusterlist = scala.collection.mutable.ListBuffer.empty[Double]//contain cluster centers as c[k]
+//      //generate k clusters randomly
+//      val datasize = data.count().toInt
+//      for(a <- 1 to K){
+//        val rand = (new Random).nextInt(datasize-1)
+//        clusterlist += data.zipWithIndex.map{case (k,v) => (v,k)}.lookup(rand)(0)
+//      }
+//
+//      var gap = 0.0 // record difference between loss and previous loss
+//      var clusterlist_update = clusterlist.toList// initiate start clusterlist_start
+//      var loss_previous = 0.0
+//      //training process
+//      while(gap>threshold) {
+//        var loss = 0.0 // record loss
+//        val data_clustered // allocate data[i] to nearest cluster center c[k], return a tuple(c[k], data[i])
+//        = data.map(data_i => {
+//          var min = data.max
+//          var index = datasize - 1
+//          for(k <- 0 to clusterlist_update.size-1)
+//            if((math.abs(data_i - clusterlist_update(k))<min)) // using abs loss
+//            {min = math.abs(data_i - clusterlist_update(k))
+//              index = k}
+//          loss += min
+//          (index+1, data_i)
+//        })
+//        gap = loss_previous - loss
+//        loss_previous = loss
+//        val clusterlist_generated = data_clustered.groupBy(_._1).map(kv => (kv._1, kv._2.map(_._2).sum/kv._2.size)).sortBy(_._1).map(_._2).collect().toList//sum and avg data_clustered to get new clusterlist
+//        clusterlist_update = clusterlist_generated // substitute newly generated clusters to old ones
+//      }
+//      clusterlist_update
+//    }
+//
+//    def vectorizedListOfDoubleRDD(priceDouble: RDD[Double]): List[(String, Int)] = {
+//      val interval = (priceDouble.max - priceDouble.min)/10
+//      val priceMax = priceDouble.max()
+//      val priceResult = priceDouble.groupBy(price => price match {
+//        case x if (priceMax - 1*interval)<x & x<=(priceMax) => "(%1.2f - %1.2f]".format(priceMax - 1*interval, priceMax)
+//        case x if (priceMax - 2*interval)<x & x<=(priceMax - 1*interval) => "(%1.2f - %1.2f]".format(priceMax - 2*interval, priceMax - 1*interval)
+//        case x if (priceMax - 3*interval)<x & x<=(priceMax - 2*interval) => "(%1.2f - %1.2f]".format(priceMax - 3*interval, priceMax - 2*interval)
+//        case x if (priceMax - 4*interval)<x & x<=(priceMax - 3*interval) => "(%1.2f - %1.2f]".format(priceMax - 4*interval, priceMax - 3*interval)
+//        case x if (priceMax - 5*interval)<x & x<=(priceMax - 4*interval) => "(%1.2f - %1.2f]".format(priceMax - 5*interval, priceMax - 4*interval)
+//        case x if (priceMax - 6*interval)<x & x<=(priceMax - 5*interval) => "(%1.2f - %1.2f]".format(priceMax - 6*interval, priceMax - 5*interval)
+//        case x if (priceMax - 7*interval)<x & x<=(priceMax - 6*interval) => "(%1.2f - %1.2f]".format(priceMax - 7*interval, priceMax - 6*interval)
+//        case x if (priceMax - 8*interval)<x & x<=(priceMax - 7*interval) => "(%1.2f - %1.2f]".format(priceMax - 8*interval, priceMax - 7*interval)
+//        case x if (priceMax - 9*interval)<x & x<=(priceMax - 8*interval) => "(%1.2f - %1.2f]".format(priceMax - 9*interval, priceMax - 8*interval)
+//        case x if (priceMax - 10*interval)<=x & x<=(priceMax - 9*interval) => "(%1.2f - %1.2f]".format(priceMax - 10*interval, priceMax - 9*interval)
+//      }).mapValues(_.size).collect().toSeq.sortWith(_._2 > _._2).toList //sort list result descending
+//      priceResult
+//    }
+//
+//    def vectorizedListOfDouble(priceDouble: List[Double]): List[(String, Int)] = {
+//      val interval = (priceDouble.max - priceDouble.min)/10
+//      val priceResult = priceDouble.groupBy(price => price match {
+//        case x if (priceDouble.max - 1*interval)<x & x<=(priceDouble.max) => "(%1.2f - %1.2f]".format(priceDouble.max - 1*interval, priceDouble.max)
+//        case x if (priceDouble.max - 2*interval)<x & x<=(priceDouble.max - 1*interval) => "(%1.2f - %1.2f]".format(priceDouble.max - 2*interval, priceDouble.max - 1*interval)
+//        case x if (priceDouble.max - 3*interval)<x & x<=(priceDouble.max - 2*interval) => "(%1.2f - %1.2f]".format(priceDouble.max - 3*interval, priceDouble.max - 2*interval)
+//        case x if (priceDouble.max - 4*interval)<x & x<=(priceDouble.max - 3*interval) => "(%1.2f - %1.2f]".format(priceDouble.max - 4*interval, priceDouble.max - 3*interval)
+//        case x if (priceDouble.max - 5*interval)<x & x<=(priceDouble.max - 4*interval) => "(%1.2f - %1.2f]".format(priceDouble.max - 5*interval, priceDouble.max - 4*interval)
+//        case x if (priceDouble.max - 6*interval)<x & x<=(priceDouble.max - 5*interval) => "(%1.2f - %1.2f]".format(priceDouble.max - 6*interval, priceDouble.max - 5*interval)
+//        case x if (priceDouble.max - 7*interval)<x & x<=(priceDouble.max - 6*interval) => "(%1.2f - %1.2f]".format(priceDouble.max - 7*interval, priceDouble.max - 6*interval)
+//        case x if (priceDouble.max - 8*interval)<x & x<=(priceDouble.max - 7*interval) => "(%1.2f - %1.2f]".format(priceDouble.max - 8*interval, priceDouble.max - 7*interval)
+//        case x if (priceDouble.max - 9*interval)<x & x<=(priceDouble.max - 8*interval) => "(%1.2f - %1.2f]".format(priceDouble.max - 9*interval, priceDouble.max - 8*interval)
+//        case x if (priceDouble.max - 10*interval)<=x & x<=(priceDouble.max - 9*interval) => "(%1.2f - %1.2f]".format(priceDouble.max - 10*interval, priceDouble.max - 9*interval)
+//        case _ => "other"
+//      }).mapValues(_.size).toSeq.sortWith(_._2 > _._2).toList //sort list result descending
+//      priceResult
+//    }
+//
+//    val clusterlist_spark = kNN_Spark(data)
+//    val dataLocal = data.collect()
+//    val datasize = dataLocal.size
+//    val data_result = dataLocal.map(data_i => {
+//      var min = data.max
+//      var index = datasize - 1
+//      for(k <- 0 to clusterlist_spark.size-1)
+//        if((math.abs(data_i - clusterlist_spark(k))<min)) {
+//          min = math.abs(data_i - clusterlist_spark(k))
+//          index = k
+//        }
+//      (index+1, data_i)
+//    }).groupBy(_._1).map(kv => (kv._1, kv._2.map(_._2).toList)).toSeq.sortWith(_._1 < _._1)
+//    val result_vectorized = for(l <- data_result) yield l match {
+//      case (a, b) => Some(clusterlist_spark(a-1), vectorizedListOfDouble(b))
+//      case _ => None
+//    }
+//    val result = result_vectorized.flatten.sortWith(_._1>_._1)
+//    var RL:Map[String,List[(String, Int)]]=
+//      Map("Very High"->result(0)._2,
+//        "High"->result(1)._2,
+//        "Medium"->result(2)._2,
+//        "Low"->result(3)._2,
+//        "Very Cheap"->result(4)._2)
+//    RL
 //    val priceDouble = priceCombined.map(x=>Functions.safeStringToDouble(x)).flatten
 //    vectorizedListOfDouble(priceDouble) // return 10 vectorized double classes
-  }
+//  }
 
 
 //  def getPricesResult(): List[(Double, List[(String, Int)])] = {

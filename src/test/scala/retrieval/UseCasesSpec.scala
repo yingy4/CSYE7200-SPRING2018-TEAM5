@@ -6,10 +6,10 @@ import org.scalatest.{FlatSpec, Matchers}
 import scala.collection.mutable.ListBuffer
 
 class UseCasesSpec extends FlatSpec with Matchers{
-
+  val buf = scala.collection.mutable.ListBuffer.empty[Item]
   behavior of "Top_K_Colors"
   it should """get data from running APP and reading .txt, return List[(String, Int)]"""in{
-    val test = UseCases.Top_K_Colors(1)
+    val test = UseCases.Top_K_Colors(1, buf)
     test should matchPattern{
       case List((s:String,i:Int))=>
     }
@@ -17,7 +17,7 @@ class UseCasesSpec extends FlatSpec with Matchers{
 
   behavior of "Top_K_Brands"
   it should """get data from running APP and reading .txt, return List[(String, Int)]"""in{
-    val test = UseCases.Top_K_Brands(1)
+    val test = UseCases.Top_K_Brands(1, buf)
     test should matchPattern{
       case List((s:String,i:Int))=>
     }
@@ -25,7 +25,7 @@ class UseCasesSpec extends FlatSpec with Matchers{
 
   behavior of "Top_k_p()"
   it should """get data from running APP and reading .txt, return List[String]"""in{
-    val test = UseCases.Top_k_p()
+    val test = UseCases.Top_k_p(buf)
     test should matchPattern{
       case ls:List[String]=>
     }

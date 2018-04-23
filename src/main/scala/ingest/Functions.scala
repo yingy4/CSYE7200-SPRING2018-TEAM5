@@ -66,10 +66,10 @@ object  Functions {
 
   def futureProcess(buf: ListBuffer[Item], urls: Seq[String]): Unit = {
     //check if buf is null
-    if (buf == null) {
-      println("ListBuffer is not defined!")
-      return
-    }
+//    if (buf == null) {
+//      println("ListBuffer is not defined!")
+//      return
+//    }
     //for every URL in Seq[URLs], generate 10 Items using Future to wrap
     val listOfFuture = for(url <- urls) yield {
       Future(urlToItem(url))
