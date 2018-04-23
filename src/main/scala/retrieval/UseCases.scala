@@ -30,9 +30,9 @@ object UseCases {
     val colorsLower = getLocalColors(buf, cacheColors)//a list of color unsorted(what we get from running App one time)
     val color2RDD = sc.textFile("color.txt")
     val colorRDD =  Functions.sortResultDecending(Functions.seperate(color2RDD, ",")).
-      filter(_._2 > 10)//a RDD of sorted color tuples filtered out less than and equal to 10
+      filter{case(_, count ) => count > 10}//a RDD of sorted color tuples filtered out less than and equal to 10
     val colorSeq = Functions.sortResultDescending(colorsLower).
-      filter(_._2 > 1)//a seq of sorted color tuples filtered out less than and equal to 1
+      filter{case(_, count ) => count > 1}//a seq of sorted color tuples filtered out less than and equal to 1
     val colorCombined =  colorRDD.collect().toList ++ colorSeq.toList
     val colorResult =  Functions.mergeAndSort(colorCombined)
     colorResult.take(k)
@@ -42,9 +42,9 @@ object UseCases {
     val brandsUpper = getLocalBrands(buf, cacheBrands)
     val brand2RDD = sc.textFile("brand.txt")
     val brandRDD = Functions.sortResultDecending(Functions.seperate(brand2RDD, ",")).
-      filter(_._2 > 10)
+      filter{case(_, count ) => count > 10}
     val brandSeq = Functions.sortResultDescending(brandsUpper).
-      filter(_._2 > 1)
+      filter{case(_, count ) => count > 1}
     val brandCombined =  brandRDD.collect().toList ++ brandSeq.toList
     val brandResult =  Functions.mergeAndSort(brandCombined)
     brandResult.take(k)

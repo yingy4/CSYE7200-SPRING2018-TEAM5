@@ -18,7 +18,7 @@ import java.io._
   */
 
 object  Functions {
-  case class Item(color: String, brand: String, price: String, URL: String)
+  case class Item(color: String, brand: String, price: String, url: String)
 
   /**
     * parameters: an Item
