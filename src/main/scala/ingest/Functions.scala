@@ -7,6 +7,8 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.xml.XML
+
 
 /**
   * Created by Team5 on 4/14/2018.
@@ -15,7 +17,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
   */
 
 object  Functions {
-  var count = 0
   case class Item(Color: String, Brand: String, Price: String, URL: String)
 
   /**
@@ -33,7 +34,6 @@ object  Functions {
     */
 
   def urlToItem(url: String): Seq[Item] = {
-    import scala.xml.XML
     val xml = XML.load(url)
     val itemInXML = xml \\ "Item"
     val seqItem = for (x <- itemInXML) yield {
@@ -89,8 +89,6 @@ object  Functions {
             case Failure(e) => println(e) // java.io.IOException: Server returned HTTP response code: 503 for URL: ...
           }
         }
-        count += 1
-        println(count + "/82 complished")
       case _ => println("Whole FutureListFails")
     }
   }
@@ -131,7 +129,7 @@ object  Functions {
 
   // word-count and sort descending
   def sortResultDescending(list: List[String]): Seq[(String, Int)] = {
-    list.groupBy(w => w).mapValues(_.size).toSeq.sortWith(_._2 > _._2)
+    list.groupBy(w => w).mapValues(_.size).toSeq.sortWith( _._2 > _._2)
   }
 
   // on RDD
@@ -140,11 +138,8 @@ object  Functions {
   }
 
   //safely parse String to Double using Option to avoid not-formatted error
-  def safeStringToDouble(str: String): Option[Double] = try {
-    Some(str.toDouble)
-  } catch {
-    case e: NumberFormatException => None
-  }
+  def safeStringToDouble(str: String): Option[Double] = Some(str.toDouble)
+
 
   //separate RDD[String] by separator
   def seperate(lines: RDD[String],separator: String) = {

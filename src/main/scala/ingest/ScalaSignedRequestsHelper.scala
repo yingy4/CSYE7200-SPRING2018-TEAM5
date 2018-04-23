@@ -3,6 +3,9 @@ package ingest
 import scala.collection.SortedMap
 import scala.collection.mutable.Map
 import scala.util.Try
+import javax.crypto.spec.SecretKeySpec
+import javax.crypto.Mac
+
 
 /**
   * Cited
@@ -11,26 +14,24 @@ import scala.util.Try
   */
 
 case class ScalaSignedRequestsHelper(endpoint : String, awsAccessKeyId : String, awsSecretKey : String){
-  val UTF8_CHARSET = "UTF-8"
-  val HMAC_SHA256_ALGORITHM = "HmacSHA256"
-  val REQUEST_URI = "/onca/xml"
-  val REQUEST_METHOD = "GET"
+  val utf8CharSet = "UTF-8"
+  val HmacSHA256Algo = "HmacSHA256"
+  val requestURI = "/onca/xml"
+  val requestMethod = "GET"
 
-  val secretyKeyBytes = awsSecretKey.getBytes(UTF8_CHARSET)
-  import javax.crypto.spec.SecretKeySpec
-  val secretKeySpec = new SecretKeySpec(secretyKeyBytes, HMAC_SHA256_ALGORITHM)
-  import javax.crypto.Mac
-  val mac = Mac.getInstance(HMAC_SHA256_ALGORITHM)
+  val secretyKeyBytes = awsSecretKey.getBytes(utf8CharSet)
+  val secretKeySpec = new SecretKeySpec(secretyKeyBytes, HmacSHA256Algo)
+  val mac = Mac.getInstance(HmacSHA256Algo)
   mac.init(secretKeySpec)
 
   def sign(params : Map[String, String]) : String = {
     params.put("Timestamp", timestamp())
     val sortedParamMap = SortedMap[String, String]() ++ params
     val canonicalQS = canonicalize(sortedParamMap)
-    val toSign = REQUEST_METHOD + "\n" + endpoint + "\n" + REQUEST_URI +"\n" + canonicalQS
+    val toSign = requestMethod + "\n" + endpoint + "\n" + requestURI +"\n" + canonicalQS
     val hmac1 = hmac(toSign)
     val sig = percentEncodeRfc3986(hmac1)
-    val url = "http://" + endpoint + REQUEST_URI + "?" + canonicalQS + "&Signature=" + sig
+    val url = "http://" + endpoint + requestURI + "?" + canonicalQS + "&Signature=" + sig
     url
   }
 
@@ -69,7 +70,7 @@ case class ScalaSignedRequestsHelper(endpoint : String, awsAccessKeyId : String,
   }
 
   def percentEncodeRfc3986(s :String) : String = {
-    def encoder(s :String): Try[String] = Try(java.net.URLEncoder.encode(s, UTF8_CHARSET).replace("+", "%20").replace("*", "%2A").replace("%7E", "~"))
+    def encoder(s :String): Try[String] = Try(java.net.URLEncoder.encode(s, utf8CharSet).replace("+", "%20").replace("*", "%2A").replace("%7E", "~"))
     val out = encoder(s).getOrElse(s)
     out
   }

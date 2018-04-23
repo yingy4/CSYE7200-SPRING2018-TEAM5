@@ -5,8 +5,7 @@ import java.io.{BufferedWriter, FileWriter}
 import ingest.Functions.Item
 import ingest.SearchConsole
 import retrieval.UseCases.{Top_K_Brands, Top_K_Colors, Top_k_p}
-import org.apache.log4j.Logger
-import org.apache.log4j.Level
+import org.apache.log4j.{Logger,Level}
 
 object ExecutionMain {
 
