@@ -8,6 +8,7 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.xml.XML
+import java.io._
 
 
 /**
@@ -17,7 +18,7 @@ import scala.xml.XML
   */
 
 object  Functions {
-  case class Item(Color: String, Brand: String, Price: String, URL: String)
+  case class Item(color: String, brand: String, price: String, URL: String)
 
   /**
     * parameters: an Item
@@ -134,7 +135,7 @@ object  Functions {
 
   // on RDD
   def sortResultDecending(rdd: RDD[String]): RDD[(String, Int)] = {
-    rdd.map(String => (String, 1)).reduceByKey(_+_, 1).map(item => item.swap).sortByKey(false, 1).map(item => item.swap)
+    rdd.map(str => (str, 1)).reduceByKey(_+_, 1).map(item => item.swap).sortByKey(false, 1).map(item => item.swap)
   }
 
   //safely parse String to Double using Option to avoid not-formatted error
@@ -153,7 +154,6 @@ object  Functions {
 
   //write list to .txt
   def writeFile(fileName: String, list: List[String]) = {
-    import java.io._
     val file = fileName + ".txt"
     val writer = new BufferedWriter(new FileWriter(file, true))
     for(x <- list){

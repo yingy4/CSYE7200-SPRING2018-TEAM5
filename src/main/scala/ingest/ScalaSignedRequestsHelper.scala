@@ -15,13 +15,13 @@ import javax.crypto.Mac
 
 case class ScalaSignedRequestsHelper(endpoint : String, awsAccessKeyId : String, awsSecretKey : String){
   val utf8CharSet = "UTF-8"
-  val HmacSHA256Algo = "HmacSHA256"
+  val hmacSha256Algo = "HmacSHA256"
   val requestURI = "/onca/xml"
   val requestMethod = "GET"
 
   val secretyKeyBytes = awsSecretKey.getBytes(utf8CharSet)
-  val secretKeySpec = new SecretKeySpec(secretyKeyBytes, HmacSHA256Algo)
-  val mac = Mac.getInstance(HmacSHA256Algo)
+  val secretKeySpec = new SecretKeySpec(secretyKeyBytes, hmacSha256Algo)
+  val mac = Mac.getInstance(hmacSha256Algo)
   mac.init(secretKeySpec)
 
   def sign(params : Map[String, String]) : String = {

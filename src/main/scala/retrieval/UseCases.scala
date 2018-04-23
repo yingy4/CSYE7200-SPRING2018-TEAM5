@@ -28,8 +28,8 @@ object UseCases {
   //get data from running APP and reading .txt
   def Top_K_Colors(k: Int, buf: ListBuffer[Item]): List[(String, Int)] = {
     val colorsLower = getLocalColors(buf, cacheColors)//a list of color unsorted(what we get from running App one time)
-    val color_RDD = sc.textFile("color.txt")
-    val colorRDD =  Functions.sortResultDecending(Functions.seperate(color_RDD, ",")).
+    val color2RDD = sc.textFile("color.txt")
+    val colorRDD =  Functions.sortResultDecending(Functions.seperate(color2RDD, ",")).
       filter(_._2 > 10)//a RDD of sorted color tuples filtered out less than and equal to 10
     val colorSeq = Functions.sortResultDescending(colorsLower).
       filter(_._2 > 1)//a seq of sorted color tuples filtered out less than and equal to 1
@@ -40,8 +40,8 @@ object UseCases {
 
   def Top_K_Brands(k: Int, buf: ListBuffer[Item]): List[(String, Int)] = {
     val brandsUpper = getLocalBrands(buf, cacheBrands)
-    val brand_RDD = sc.textFile("brand.txt")
-    val brandRDD = Functions.sortResultDecending(Functions.seperate(brand_RDD, ",")).
+    val brand2RDD = sc.textFile("brand.txt")
+    val brandRDD = Functions.sortResultDecending(Functions.seperate(brand2RDD, ",")).
       filter(_._2 > 10)
     val brandSeq = Functions.sortResultDescending(brandsUpper).
       filter(_._2 > 1)
@@ -52,8 +52,8 @@ object UseCases {
 
   def Top_k_p(buf: ListBuffer[Item]): List[String] = {
     val pricesString = getLocalPricesString(buf, cachePrices)
-    val price_RDD = sc.textFile("price.txt")
-    val priceRDD =  Functions.seperate(price_RDD, ",")
+    val price2RDD = sc.textFile("price.txt")
+    val priceRDD =  Functions.seperate(price2RDD, ",")
     val priceSeq = pricesString
     val priceCombined = priceRDD.collect().toList ++ priceSeq
     priceCombined

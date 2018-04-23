@@ -13,22 +13,22 @@ import scala.collection.mutable.ListBuffer
   */
 
 object SearchConsole{
-  private val ENDPOINT = Client.Using.endpoint
-  private val ACCESS_KEY_ID = Client.Using.awsAccessKeyId
-  private val SECRET_KEY = Client.Using.awsSecretKey
+  private val endPoint = Client.Using.endpoint
+  private val accessKeyID = Client.Using.awsAccessKeyId
+  private val secretKey = Client.Using.awsSecretKey
   //don't need to set here below any value!(as long as you set them in main)
 //  var SEARCH_KEYWORDS = ""
-  val RESPONSE_TIME_MILLI = 3000
-  val ASYN = true
+  val responseTimeMilli = 3000
+  val asyn = true
     //using Future to process multiple request
     def searchMultiple(buf: ListBuffer[Item], startPage: Int, endPage: Int, searchKeywords: String): Unit = {
-      val helper = ScalaSignedRequestsHelper (ENDPOINT, ACCESS_KEY_ID, SECRET_KEY)
+      val helper = ScalaSignedRequestsHelper (endPoint, accessKeyID, secretKey)
       val requestList = new ListBuffer[String]()
       for (i <- startPage to endPage) {
         val map = new mutable.HashMap[String, String]
         map.put ("Service", "AWSECommerceService")
         map.put ("Operation", "ItemSearch")
-        map.put ("AWSAccessKeyId", ACCESS_KEY_ID)
+        map.put ("AWSAccessKeyId", accessKeyID)
         map.put ("AssociateTag", "scalaproject-20")
         map.put ("SearchIndex", "All")
         map.put ("Keywords", searchKeywords)
@@ -37,15 +37,15 @@ object SearchConsole{
         requestList += helper.sign (map)
       }
       Functions.futureProcess(buf, requestList.toList)
-      Thread.sleep(RESPONSE_TIME_MILLI)
+      Thread.sleep(responseTimeMilli)
     }
     //return one page
     def searchSingle(buf: ListBuffer[Item], pageNumber: Int, searchKeywords: String): Unit = {
-      val helper = ScalaSignedRequestsHelper (ENDPOINT, ACCESS_KEY_ID, SECRET_KEY)
+      val helper = ScalaSignedRequestsHelper (endPoint, accessKeyID, secretKey)
       val map = new mutable.HashMap[String, String]
       map.put ("Service", "AWSECommerceService")
       map.put ("Operation", "ItemSearch")
-      map.put ("AWSAccessKeyId", ACCESS_KEY_ID)
+      map.put ("AWSAccessKeyId", accessKeyID)
       map.put ("AssociateTag", "scalaproject-20")
       map.put ("SearchIndex", "All")
       map.put ("Keywords", searchKeywords)
@@ -57,35 +57,35 @@ object SearchConsole{
     }
 
   //same. you can assign certain range of pages to search
-   def searchMultiple(buf: ListBuffer[Item], startPage: Int, endPage: Int, searchKeyword: String, flag: Boolean,  searchKeywordsIdx: String): Unit = {
-    val helper = ScalaSignedRequestsHelper (ENDPOINT, ACCESS_KEY_ID, SECRET_KEY)
-    val requestList = new ListBuffer[String]()
-    for (i <- startPage to endPage) {
-      val map = new mutable.HashMap[String, String]
-      map.put ("Service", "AWSECommerceService")
-      map.put ("Operation", "ItemSearch")
-      map.put ("AWSAccessKeyId", ACCESS_KEY_ID)
-      map.put ("AssociateTag", "scalaproject-20")
-      map.put ("SearchIndex", searchKeywordsIdx)
-      map.put ("Keywords", searchKeyword)
-      map.put ("ResponseGroup", "Images,ItemAttributes")
-      map.put ("ItemPage" , i.toString)
-      requestList += helper.sign (map)
-    }
-    //decide whether to parallel
-    if (flag) {
-      println("FutureProcess starts!")
-      Functions.futureProcess(buf, requestList.toList)
-      Thread.sleep(RESPONSE_TIME_MILLI)
-    }
+   def searchMultiple(buf: ListBuffer[Item], startPage: Int, endPage: Int, searchKeyword: String, flag: Boolean, searchKeywordsIdx: String): Unit = {
+     val helper = ScalaSignedRequestsHelper(endPoint, accessKeyID, secretKey)
+     val requestList = new ListBuffer[String]()
+     for (i <- startPage to endPage) {
+       val map = new mutable.HashMap[String, String]
+       map.put("Service", "AWSECommerceService")
+       map.put("Operation", "ItemSearch")
+       map.put("AWSAccessKeyId", accessKeyID)
+       map.put("AssociateTag", "scalaproject-20")
+       map.put("SearchIndex", searchKeywordsIdx)
+       map.put("Keywords", searchKeyword)
+       map.put("ResponseGroup", "Images,ItemAttributes")
+       map.put("ItemPage", i.toString)
+       requestList += helper.sign(map)
+     }
+     //decide whether to parallel
+     flag match {
+       case true =>
+         println("FutureProcess starts!")
+         Functions.futureProcess(buf, requestList.toList)
+         Thread.sleep(responseTimeMilli)
 
-    else if (!flag) {
-      Functions.noneFutureProcess(buf, requestList.toList)
-    }
-  }
+       case false =>
+         Functions.noneFutureProcess(buf, requestList.toList)
+     }
+   }
 
   //return all results! 82 in total, every 5 urls wrapped in a Future(5*10=50 Items), 82*50=4100 Items in total theoretically!
-  def searchAllCategoriesLinear(buf: ListBuffer[Item], searchKeywords: String, flag: Boolean = ASYN): Unit = {
+  def searchAllCategoriesLinear(buf: ListBuffer[Item], searchKeywords: String, flag: Boolean = asyn): Unit = {
     searchMultiple(buf,1,5,"Fashion",flag,searchKeywords)
     searchMultiple(buf,6,10,"Fashion",flag,searchKeywords)
     searchMultiple(buf,1,5,"FashionBaby",flag,searchKeywords)
