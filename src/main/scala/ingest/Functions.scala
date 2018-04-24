@@ -13,7 +13,7 @@ import java.io._
 
 /**
   * Created by Team5 on 4/14/2018.
-  * reference:
+  *
   *
   */
 
@@ -55,7 +55,7 @@ object  Functions {
 
   def futureToFutureTry(f: Future[Seq[Item]]): Future[Try[Seq[Item]]] = {
     val result = f.map(Success(_)).recover {
-      case e: Exception => println(e);Failure(e)
+      case e: Exception => Failure(e)
     }
     result
   }
@@ -139,7 +139,10 @@ object  Functions {
   }
 
   //safely parse String to Double using Option to avoid not-formatted error
-  def safeStringToDouble(str: String): Option[Double] = Some(str.toDouble)
+  def safeStringToDouble(str: String): Option[Double] = Try(str.toDouble) match {
+    case Success(s) => Some(s)
+    case Failure(e) => None
+  }
 
 
   //separate RDD[String] by separator
@@ -147,7 +150,7 @@ object  Functions {
     lines.flatMap(_.split(separator))
   }
 
-  //merge two (String, Int) by key and add Int values
+    //merge two (String, Int) by key and add Int values
   def mergeAndSort(list: List[(String, Int)]): List[(String, Int)] = {
     list.groupBy(_._1).map( kv => (kv._1, kv._2.map( _._2).sum ) ).toSeq.sortWith(_._2 > _._2).toList
   }

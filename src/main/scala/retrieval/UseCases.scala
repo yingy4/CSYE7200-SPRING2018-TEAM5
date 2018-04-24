@@ -10,7 +10,7 @@ import scala.util.Random
 
 /**
   * Created by Team5 on 4/14/2018.
-  * reference:
+  *
   *
   */
 
@@ -50,13 +50,14 @@ object UseCases {
     brandResult.take(k)
   }
 
-  def Top_k_p(buf: ListBuffer[Item]): List[String] = {
+  def Top_k_p(buf: ListBuffer[Item]): List[(String,Int)] = {
     val pricesString = getLocalPricesString(buf, cachePrices)
     val price2RDD = sc.textFile("price.txt")
     val priceRDD =  Functions.seperate(price2RDD, ",")
     val priceSeq = pricesString
     val priceCombined = priceRDD.collect().toList ++ priceSeq
-    priceCombined
+    val priceDouble = priceCombined.map(w => Functions.safeStringToDouble(w)).flatten
+    vectorizedListOfDouble(priceDouble)
   }
 
   /**

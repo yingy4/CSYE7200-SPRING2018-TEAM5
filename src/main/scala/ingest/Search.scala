@@ -1,14 +1,14 @@
 package ingest
 
 import ingest.Functions.Item
-import retrieval.{Client, ExecutionMain}
+import retrieval.{Client}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 /**
   * Created by Team5 on 4/14/2018.
-  * reference:
+  *
   *
   */
 
@@ -75,10 +75,9 @@ object SearchConsole{
      //decide whether to parallel
      flag match {
        case true =>
-         println("FutureProcess starts!")
+         println("Received a response!")
          Functions.futureProcess(buf, requestList.toList)
          Thread.sleep(responseTimeMilli)
-
        case false =>
          Functions.noneFutureProcess(buf, requestList.toList)
      }
@@ -98,42 +97,42 @@ object SearchConsole{
     searchMultiple(buf,6,10,"FashionMen",flag,searchKeywords)
     searchMultiple(buf,1,5,"FashionWomen",flag,searchKeywords)
     searchMultiple(buf,6,10,"FashionWomen",flag,searchKeywords)
-    searchMultiple(buf,1,5,"Appliances",flag,searchKeywords)
-    searchMultiple(buf,6,10,"Appliances",flag,searchKeywords)
-    searchMultiple(buf,1,5,"ArtsAndCrafts",flag,searchKeywords)
-    searchMultiple(buf,6,10,"ArtsAndCrafts",flag,searchKeywords)
-    searchMultiple(buf,1,5,"Automotive",flag,searchKeywords)
-    searchMultiple(buf,6,10,"Automotive",flag,searchKeywords)
-    searchMultiple(buf,1,5,"Baby",flag,searchKeywords)
-    searchMultiple(buf,6,10,"Baby",flag,searchKeywords)
-    searchMultiple(buf,1,5,"Beauty",flag,searchKeywords)
-    searchMultiple(buf,6,10,"Beauty",flag,searchKeywords)
-    searchMultiple(buf,1,5,"Blended",flag,searchKeywords)
-    searchMultiple(buf,6,10,"Blended",flag,searchKeywords)
-    searchMultiple(buf,1,5,"Books",flag,searchKeywords)
-    searchMultiple(buf,6,10,"Books",flag,searchKeywords)
-    searchMultiple(buf,1,5,"Collectibles",flag,searchKeywords)
-    searchMultiple(buf,6,10,"Collectibles",flag,searchKeywords)
-    searchMultiple(buf,1,5,"Electronics",flag,searchKeywords)
-    searchMultiple(buf,6,10,"Electronics",flag,searchKeywords)
-    searchMultiple(buf,1,5,"GiftCards",flag,searchKeywords)
-    searchMultiple(buf,6,10,"GiftCards",flag,searchKeywords)
-    searchMultiple(buf,1,5,"Grocery",flag,searchKeywords)
-    searchMultiple(buf,6,10,"Grocery",flag,searchKeywords)
-    searchMultiple(buf,1,5,"HealthPersonalCare",flag,searchKeywords)
-    searchMultiple(buf,6,10,"HealthPersonalCare",flag,searchKeywords)
-    searchMultiple(buf,1,5,"HomeGarden",flag,searchKeywords)
-    searchMultiple(buf,6,10,"HomeGarden",flag,searchKeywords)
-    searchMultiple(buf,1,5,"Industrial",flag,searchKeywords)
-    searchMultiple(buf,6,10,"Industrial",flag,searchKeywords)
-    searchMultiple(buf,1,5,"KindleStore",flag,searchKeywords)
-    searchMultiple(buf,6,10,"KindleStore",flag,searchKeywords)
-    searchMultiple(buf,1,5,"LawnAndGarden",flag,searchKeywords)
-    searchMultiple(buf,6,10,"LawnAndGarden",flag,searchKeywords)
-    searchMultiple(buf,1,5,"Luggage",flag,searchKeywords)
-    searchMultiple(buf,6,10,"Luggage",flag,searchKeywords)
-    searchMultiple(buf,1,5,"MP3Downloads",flag,searchKeywords)
-    searchMultiple(buf,6,10,"MP3Downloads",flag,searchKeywords)
+//    searchMultiple(buf,1,5,"Appliances",flag,searchKeywords)
+//    searchMultiple(buf,6,10,"Appliances",flag,searchKeywords)
+//    searchMultiple(buf,1,5,"ArtsAndCrafts",flag,searchKeywords)
+//    searchMultiple(buf,6,10,"ArtsAndCrafts",flag,searchKeywords)
+//    searchMultiple(buf,1,5,"Automotive",flag,searchKeywords)
+//    searchMultiple(buf,6,10,"Automotive",flag,searchKeywords)
+//    searchMultiple(buf,1,5,"Baby",flag,searchKeywords)
+//    searchMultiple(buf,6,10,"Baby",flag,searchKeywords)
+//    searchMultiple(buf,1,5,"Beauty",flag,searchKeywords)
+//    searchMultiple(buf,6,10,"Beauty",flag,searchKeywords)
+//    searchMultiple(buf,1,5,"Blended",flag,searchKeywords)
+//    searchMultiple(buf,6,10,"Blended",flag,searchKeywords)
+//    searchMultiple(buf,1,5,"Books",flag,searchKeywords)
+//    searchMultiple(buf,6,10,"Books",flag,searchKeywords)
+//    searchMultiple(buf,1,5,"Collectibles",flag,searchKeywords)
+//    searchMultiple(buf,6,10,"Collectibles",flag,searchKeywords)
+//    searchMultiple(buf,1,5,"Electronics",flag,searchKeywords)
+//    searchMultiple(buf,6,10,"Electronics",flag,searchKeywords)
+//    searchMultiple(buf,1,5,"GiftCards",flag,searchKeywords)
+//    searchMultiple(buf,6,10,"GiftCards",flag,searchKeywords)
+//    searchMultiple(buf,1,5,"Grocery",flag,searchKeywords)
+//    searchMultiple(buf,6,10,"Grocery",flag,searchKeywords)
+//    searchMultiple(buf,1,5,"HealthPersonalCare",flag,searchKeywords)
+//    searchMultiple(buf,6,10,"HealthPersonalCare",flag,searchKeywords)
+//    searchMultiple(buf,1,5,"HomeGarden",flag,searchKeywords)
+//    searchMultiple(buf,6,10,"HomeGarden",flag,searchKeywords)
+//    searchMultiple(buf,1,5,"Industrial",flag,searchKeywords)
+//    searchMultiple(buf,6,10,"Industrial",flag,searchKeywords)
+//    searchMultiple(buf,1,5,"KindleStore",flag,searchKeywords)
+//    searchMultiple(buf,6,10,"KindleStore",flag,searchKeywords)
+//    searchMultiple(buf,1,5,"LawnAndGarden",flag,searchKeywords)
+//    searchMultiple(buf,6,10,"LawnAndGarden",flag,searchKeywords)
+//    searchMultiple(buf,1,5,"Luggage",flag,searchKeywords)
+//    searchMultiple(buf,6,10,"Luggage",flag,searchKeywords)
+//    searchMultiple(buf,1,5,"MP3Downloads",flag,searchKeywords)
+//    searchMultiple(buf,6,10,"MP3Downloads",flag,searchKeywords)
 //    searchMultiple(buf,1,5,"Magazines",flag,searchKeywords)
 //    searchMultiple(buf,6,10,"Magazines",flag,searchKeywords)
 //    searchMultiple(buf,1,5,"Merchants",flag,searchKeywords)
