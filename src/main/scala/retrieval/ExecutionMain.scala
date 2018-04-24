@@ -22,8 +22,6 @@ object ExecutionMain {
         Top_K_Colors(10, buf).foreach(println)
         Top_K_Brands(10, buf).foreach(println)
         //  print(Top_k_p())//normal prices in String format
-
-        //k-means deal with prices
         Top_k_p(buf).foreach(println)
           val file4 = "item.txt"
           val writer4 = new BufferedWriter(new FileWriter(file4, true))
@@ -31,14 +29,6 @@ object ExecutionMain {
             writer4.append(x + "\n")
           }
           writer4.close()
-      //      args(0) match {
-      //        case "hashtags" => Usecases.popularHashTags(keyword)
-      //        case "map" => Usecases.popularLocations(keyword)
-      //        case "weather" => runWeather(keyword)
-      //        case "stock" => runStock(keyword)
-      //        case _ => println("Invalid input. Please refer to README.md in our repo for input parameter.")
-      //      }
-      //    }
     }
   }
 }
