@@ -19,6 +19,9 @@ Houze Liu - liu.hou@husky.neu.edu
 # Abstract
 Our goal is to process data from responses of calling Amazon Product Advertising API, extact meaningful features and analyze the trend on Amazon especially in clothing and fashion department. We select color, brand and price as our basic features and use them to find their proportions and relationships. We have two use cases: As a customer, you need to provide a keyword that you are interested in and our system tells you most popular colors, brands and how expensive are products on Amazon. That may help you make better shopping choices online. As a seller, you may provide as many keywords as you want, our system allows you build your simple database according to your interests.This may help you make better marketing strategy, including pricing and customer-targeting. Then the project runs Spark on the database to tell you the trend. 
 
+# How to run
+Select the project file 'CSYE7200-SPRING2018-TEAM5', open command window and type in: sbt 'run KEYWORD'<br> Use any character to replace KEYWORD. Support one keyword only.
+
 # Methodology
 1\.  Preprocessing: Generating Url with Amazon account signature.
 
